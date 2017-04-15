@@ -21,7 +21,7 @@ npm install -g gulp
 # Install 'angular-cli' node package
 npm install -g @angular/cli
 
-# -- BUILD 'world-of-rations-ui'' project --
+# -- BUILD 'world-of-rations-ui' project --
 
 # Clone 'world-of-rations-ui' repository
 git clone https://github.com/barend-erasmus/world-of-rations-ui.git
@@ -42,4 +42,84 @@ npm run build
 docker build --no-cache -t world-of-rations-ui ./
 
 # Run docker as deamon
-docker run -d -p 8083:8083 -t world-of-rations-ui
+docker run -d -p 8084:8084 -t world-of-rations-ui
+
+# Change to home directory
+cd ~
+
+# -- BUILD 'world-of-rations-service' project --
+
+# Clone 'world-of-rations-service' repository
+git clone https://github.com/barend-erasmus/world-of-rations-service.git
+
+# Change to cloned directory
+cd ./world-of-rations-service
+
+# Replace domain
+sed -i -- "s/yourdomain.com/$domain/g" ./src/config.prod.ts
+
+# Install node packages
+npm install
+
+# Build project
+npm run build
+
+# Build docker image
+docker build --no-cache -t world-of-rations-service ./
+
+# Run docker as deamon
+docker run -d -p 8083:8083 -t world-of-rations-service
+
+# Change to home directory
+cd ~
+
+# -- BUILD 'world-of-rations-db' project --
+
+# Clone 'world-of-rations-db' repository
+git clone https://github.com/barend-erasmus/world-of-rations-db.git
+
+# Change to cloned directory
+cd ./world-of-rations-db
+
+# Build docker image
+docker build --no-cache -t world-of-rations-db ./
+
+# Run docker as deamon
+docker run -d -p 3306:3306 -t world-of-rations-db
+
+# Change to home directory
+cd ~
+
+# -- INSTALL SSL CERT --
+
+# Update machine package indexes
+sudo apt-get update
+
+# Open 443 port
+sudo ufw allow 443/tcp
+
+# Install Let's Encrypt cli
+sudo apt-get install -y letsencrypt
+
+# Obtain SSL CERT
+sudo letsencrypt certonly --agree-tos --standalone --email developersworkspace@gmail.com -d "$domain"
+
+# -- INSTALL NGINX --
+
+# Update machine package indexes
+sudo apt-get update
+
+# Install NGINX
+sudo apt-get install -y nginx
+
+# Add rule to firewall
+sudo ufw allow 'Nginx HTTP'
+
+# Download nginx.conf to NGINX directory
+curl -o /etc/nginx/nginx.conf https://raw.githubusercontent.com/barend-erasmus/world-of-rations/master/nginx.conf
+
+# Replace domain
+sed -i -- "s/yourdomain.com/$domain/g" /etc/nginx/nginx.conf
+
+# Restart NGINX
+systemctl restart nginx

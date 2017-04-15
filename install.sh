@@ -1,4 +1,7 @@
-# -- BUILD AND INSTALL WORLD OF RATIONS --
+# -- BUILD AND INSTALL 'world-of-rations' --
+
+# Declare varibles
+domain=$1
 
 # Update machine package indexes
 sudo apt-get update
@@ -7,7 +10,7 @@ sudo apt-get update
 curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
 
 # Install node 7
-sudo apt-get install -y nodejs
+apt-get install -y nodejs
 
 # Install 'typescript' node package
 npm install -g typescript
@@ -18,35 +21,74 @@ npm install -g gulp
 # Install 'angular-cli' node package
 npm install -g @angular/cli
 
-# Clone 'WorldOfRations' repository
-git clone https://github.com/developersworkspace/WorldOfRations.git
+# -- BUILD 'world-of-rations-ui' project --
 
-# Change directory to 'api'
-cd ./WorldOfRations/api
+# Clone 'world-of-rations-ui' repository
+git clone https://github.com/barend-erasmus/world-of-rations-ui.git
 
-# Install node packages for 'api'
+# Change to cloned directory
+cd ./world-of-rations-ui
+
+# Replace domain
+sed -i -- "s/yourdomain.com/$domain/g" ./src/environments/environment.prod.ts
+
+# Install node packages
 npm install
 
-# Build 'api'
+# Build project
 npm run build
 
-# Change directory to 'web'
-cd ./../web
+# Build docker image
+docker build --no-cache -t world-of-rations-ui ./
 
-# Install node packages for 'web'
+# Run docker as deamon
+docker run -d -p 8084:8084 -t world-of-rations-ui
+
+# Change to home directory
+cd ~
+
+# -- BUILD 'world-of-rations-service' project --
+
+# Clone 'world-of-rations-service' repository
+git clone https://github.com/barend-erasmus/world-of-rations-service.git
+
+# Change to cloned directory
+cd ./world-of-rations-service
+
+# Replace domain
+sed -i -- "s/yourdomain.com/$domain/g" ./src/config.prod.ts
+
+# Install node packages
 npm install
 
-# Build 'web'
+# Build project
 npm run build
 
-# Change to root of repository
-cd ./../
+# Build docker image
+docker build --no-cache -t world-of-rations-service ./
 
-# Build docker images
-docker-compose build --no-cache
+# Run docker as deamon
+docker run -d -p 8083:8083 -t world-of-rations-service
 
-# Run docker compose as deamon
-docker-compose up -d
+# Change to home directory
+cd ~
+
+# -- BUILD 'world-of-rations-db' project --
+
+# Clone 'world-of-rations-db' repository
+git clone https://github.com/barend-erasmus/world-of-rations-db.git
+
+# Change to cloned directory
+cd ./world-of-rations-db
+
+# Build docker image
+docker build --no-cache -t world-of-rations-db ./
+
+# Run docker as deamon
+docker run -d -p 3306:3306 -t world-of-rations-db
+
+# Change to home directory
+cd ~
 
 # -- INSTALL SSL CERT --
 
@@ -60,7 +102,7 @@ sudo ufw allow 443/tcp
 sudo apt-get install -y letsencrypt
 
 # Obtain SSL CERT
-sudo letsencrypt certonly --agree-tos --standalone --email developersworkspace@gmail.com -d worldofrations.com
+sudo letsencrypt certonly --agree-tos --standalone --email developersworkspace@gmail.com -d "$domain"
 
 # -- INSTALL NGINX --
 
@@ -74,7 +116,10 @@ sudo apt-get install -y nginx
 sudo ufw allow 'Nginx HTTP'
 
 # Download nginx.conf to NGINX directory
-curl -o /etc/nginx/nginx.conf https://raw.githubusercontent.com/developersworkspace/WorldOfRations/master/nginx.conf
+curl -o /etc/nginx/nginx.conf https://raw.githubusercontent.com/barend-erasmus/world-of-rations/master/nginx.conf
+
+# Replace domain
+sed -i -- "s/yourdomain.com/$domain/g" /etc/nginx/nginx.conf
 
 # Restart NGINX
 systemctl restart nginx
