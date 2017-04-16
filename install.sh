@@ -42,7 +42,24 @@ npm run build
 docker build --no-cache -t world-of-rations-ui ./
 
 # Run docker as deamon
-docker run -d -p 8084:8084 -t world-of-rations-ui
+docker run -d -p 8084:8084 --name wor-ui -t world-of-rations-ui
+
+# Change to home directory
+cd ~
+
+# -- BUILD 'world-of-rations-db' project --
+
+# Clone 'world-of-rations-db' repository
+git clone https://github.com/barend-erasmus/world-of-rations-db.git
+
+# Change to cloned directory
+cd ./world-of-rations-db
+
+# Build docker image
+docker build --no-cache -t world-of-rations-db ./
+
+# Run docker as deamon
+docker run -d -p 3306:3306 --name wor-db -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=worldofrations -e MYSQL_USER=worldofrations_user -e MYSQL_PASSWORD=worldofrations_password -t world-of-rations-db
 
 # Change to home directory
 cd ~
@@ -68,24 +85,7 @@ npm run build
 docker build --no-cache -t world-of-rations-service ./
 
 # Run docker as deamon
-docker run -d -p 8083:8083 -t world-of-rations-service
-
-# Change to home directory
-cd ~
-
-# -- BUILD 'world-of-rations-db' project --
-
-# Clone 'world-of-rations-db' repository
-git clone https://github.com/barend-erasmus/world-of-rations-db.git
-
-# Change to cloned directory
-cd ./world-of-rations-db
-
-# Build docker image
-docker build --no-cache -t world-of-rations-db ./
-
-# Run docker as deamon
-docker run -d -p 3306:3306 -t world-of-rations-db
+docker run -d -p 8083:8083 --name wor-service --link wor-db:mysql -t world-of-rations-service
 
 # Change to home directory
 cd ~
