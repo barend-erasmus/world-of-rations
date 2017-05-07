@@ -85,7 +85,7 @@ npm run build
 docker build --no-cache -t world-of-rations-service ./
 
 # Run docker as deamon
-docker run -d -p 8083:8083 --name wor-service --link wor-db:mysql -t world-of-rations-service
+docker run -d -p 8083:8083 --name wor-service -v /logs:/logs --link wor-db:mysql -t world-of-rations-service
 
 # Change to home directory
 cd ~
