@@ -64,6 +64,10 @@ docker run -d -p 3306:3306 --name wor-db -e MYSQL_ROOT_PASSWORD=password -e MYSQ
 # Change to home directory
 cd ~
 
+# -- BUILD 'world-of-rations-redis' project --
+
+docker run --name wor-redis -d redis
+
 # -- BUILD 'world-of-rations-service' project --
 
 # Clone 'world-of-rations-service' repository
@@ -85,7 +89,7 @@ npm run build
 docker build --no-cache -t world-of-rations-service ./
 
 # Run docker as deamon
-docker run -d -p 8083:8083 --name wor-service -v /logs:/logs --link wor-db:mysql -t world-of-rations-service
+docker run -d -p 8083:8083 --name wor-service -v /logs:/logs --link wor-db:mysql --link wor-redis:redis -t world-of-rations-service
 
 # Change to home directory
 cd ~
