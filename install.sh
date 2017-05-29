@@ -21,13 +21,10 @@ sudo apt-get update
 sudo apt-get install -y nginx
 
 # Add rule to firewall
-sudo ufw allow 'Nginx HTTP'
+sudo ufw allow 'Nginx Full'
 
 # Download nginx.conf to NGINX directory
 curl -o /etc/nginx/nginx.conf https://raw.githubusercontent.com/barend-erasmus/world-of-rations/master/nginx.conf
-
-# Replace domain
-sed -i -- "s/yourdomain.com/worldofrations.com/g" /etc/nginx/nginx.conf
 
 # Restart NGINX
 systemctl restart nginx
